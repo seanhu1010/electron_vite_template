@@ -1,29 +1,83 @@
-import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue';
+import { resolve } from 'path';
+import { defineConfig, loadEnv, ConfigEnv } from 'vite';
+import { buildConfig } from './src/utils/build';
+import electron from 'vite-plugin-electron/simple';
 import path from 'node:path'
-import electron from 'vite-plugin-electron/simple'
-import vue from '@vitejs/plugin-vue'
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [
-    vue(),
-    electron({
-      main: {
-        // Shortcut of `build.lib.entry`.
-        entry: 'electron/main.ts',
+const pathResolve = (dir: string) => {
+  return resolve(__dirname, '.', dir);
+};
+
+const alias: Record<string, string> = {
+  '/@': pathResolve('./src/'),  // 配置别名
+  'vue-i18n': 'vue-i18n/dist/vue-i18n.cjs.js',
+};
+
+const viteConfig = defineConfig((mode: ConfigEnv) => {
+  const env = loadEnv(mode.mode, process.cwd());
+
+  return {
+    plugins: [
+      vue(),
+      JSON.parse(env.VITE_OPEN_CDN) ? buildConfig.cdn() : null,
+      electron({
+        main: {
+          // Main process entry
+          entry: 'electron/main.ts',
+        },
+        preload: {
+          // Preload script
+          input: path.join(__dirname, 'electron/preload.ts'),
+        },
+        // Renderer process configuration
+        renderer: process.env.NODE_ENV === 'test' ? undefined : {},
+      }),
+    ],
+    root: process.cwd(),
+    resolve: { alias },
+    base: mode.command === 'serve' ? './' : env.VITE_PUBLIC_PATH,
+    optimizeDeps: { exclude: ['vue-demi'] },
+    server: {
+      host: '0.0.0.0',
+      port: env.VITE_PORT as unknown as number,
+      open: JSON.parse(env.VITE_OPEN),
+      hmr: true,
+      proxy: {
+        '/gitee': {
+          target: 'https://gitee.com',
+          ws: true,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/gitee/, ''),
+        },
       },
-      preload: {
-        // Shortcut of `build.rollupOptions.input`.
-        // Preload scripts may contain Web assets, so use the `build.rollupOptions.input` instead `build.lib.entry`.
-        input: path.join(__dirname, 'electron/preload.ts'),
+    },
+    build: {
+      outDir: 'dist',
+      chunkSizeWarningLimit: 1500,
+      rollupOptions: {
+        output: {
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return id.toString().match(/\/node_modules\/(?!.pnpm)(?<moduleName>[^\/]*)\//)?.groups!.moduleName ?? 'vender';
+            }
+          },
+        },
+        ...(JSON.parse(env.VITE_OPEN_CDN) ? { external: buildConfig.external } : {}),
       },
-      // Ployfill the Electron and Node.js API for Renderer process.
-      // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
-      // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
-      renderer: process.env.NODE_ENV === 'test'
-        // https://github.com/electron-vite/vite-plugin-electron-renderer/issues/78#issuecomment-2053600808
-        ? undefined
-        : {},
-    }),
-  ],
-})
+    },
+    css: { preprocessorOptions: { css: { charset: false } } },
+    define: {
+      __VUE_I18N_LEGACY_API__: JSON.stringify(false),
+      __VUE_I18N_FULL_INSTALL__: JSON.stringify(false),
+      __INTLIFY_PROD_DEVTOOLS__: JSON.stringify(false),
+      __NEXT_VERSION__: JSON.stringify(process.env.npm_package_version),
+      __NEXT_NAME__: JSON.stringify(process.env.npm_package_name),
+    },
+  };
+});
+
+export default viteConfig;
