@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc && vite build && electron-builder",
-    "preview": "vite preview"
+    "preview": "vite preview",
+	"prebuild": "node src/prebuild.cjs"
   },
   "dependencies": {
 		"@element-plus/icons-vue": "^2.3.1",

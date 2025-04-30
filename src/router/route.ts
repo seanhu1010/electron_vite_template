@@ -62,6 +62,22 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 					icon: 'iconfont icon-shouye',
 				},
 			},
+			// 增加文件夹界面路由
+			{
+				path: '/file',
+				name: 'file',
+				component: () => import('/@/views/file/index.vue'),
+				meta: {
+					title: '文件夹',
+					isLink: '',
+					isHide: false,
+					isKeepAlive: true,
+					isAffix: true,
+					isIframe: false,
+					roles: ['admin', 'common'],
+					icon: 'fa fa-desktop',
+				},
+			},
 			{
 				path: '/system',
 				name: 'system',

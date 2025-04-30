@@ -1,7 +1,8 @@
-import { app, BrowserWindow } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
+import { ChildProcess, spawn } from 'child_process';
 
 const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -26,6 +27,13 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL ? path.join(process.env.APP_ROOT, 
 
 let win: BrowserWindow | null
 
+let fastApiProcess: ChildProcess | null = null;
+
+function startFastAPI() {
+  const backendPath = path.join(process.env.APP_ROOT, 'build', 'backend', 'main', 'main.exe');
+  fastApiProcess = spawn(backendPath, { windowsHide: true });
+}
+
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
@@ -41,11 +49,31 @@ function createWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
+    startFastAPI()
   } else {
     // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
   }
 }
+
+// 在主进程中监听 'dialog:openFile' 事件，处理打开文件夹的操作
+ipcMain.handle('dialog:openFile', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'], // 选择文件夹
+  });
+
+  // 返回选择的文件夹路径
+  return result.filePaths.length > 0 ? result.filePaths[0] : null;
+});
+
+const stopFastAPI = () => {
+  if (fastApiProcess !== null) {
+    fastApiProcess.kill()
+    fastApiProcess = null
+  }
+}
+
+app.on('before-quit', stopFastAPI)
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
