@@ -40,7 +40,7 @@ declare module 'vue-router' {
 export const dynamicRoutes: Array<RouteRecordRaw> = [
 	{
 		path: '/',
-		name: '/',
+		name: 'layout', // 给 layout 命名
 		component: () => import('/@/layout/index.vue'),
 		redirect: '/home',
 		meta: {
@@ -68,11 +68,11 @@ export const dynamicRoutes: Array<RouteRecordRaw> = [
 				name: 'file',
 				component: () => import('/@/views/file/index.vue'),
 				meta: {
-					title: '文件夹',
+					title: 'message.router.file',
 					isLink: '',
 					isHide: false,
 					isKeepAlive: true,
-					isAffix: true,
+					isAffix: false,
 					isIframe: false,
 					roles: ['admin', 'common'],
 					icon: 'fa fa-desktop',

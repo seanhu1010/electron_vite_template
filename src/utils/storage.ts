@@ -42,23 +42,27 @@ export const Local = {
 export const Session = {
 	// 设置临时缓存
 	set<T>(key: string, val: T) {
-		if (key === 'token') return Cookies.set(key, val);
+		// 原代码这里对 'token' 使用 Cookies，现在改为使用 sessionStorage
+		// if (key === 'token') return Cookies.set(key, val); // 删除或注释这行
 		window.sessionStorage.setItem(Local.setKey(key), JSON.stringify(val));
 	},
 	// 获取临时缓存
 	get(key: string) {
-		if (key === 'token') return Cookies.get(key);
+		// 原代码这里对 'token' 使用 Cookies，现在改为使用 sessionStorage
+    	// if (key === 'token') return Cookies.get(key); // 删除或注释这行
 		let json = <string>window.sessionStorage.getItem(Local.setKey(key));
 		return JSON.parse(json);
 	},
 	// 移除临时缓存
 	remove(key: string) {
-		if (key === 'token') return Cookies.remove(key);
+		// 原代码这里对 'token' 使用 Cookies，现在改为使用 sessionStorage
+    	// if (key === 'token') return Cookies.remove(key); // 删除或注释这行
 		window.sessionStorage.removeItem(Local.setKey(key));
 	},
 	// 移除全部临时缓存
 	clear() {
-		Cookies.remove('token');
+		// 原代码这里对 'token' 使用 Cookies，现在改为使用 sessionStorage
+    	// Cookies.remove('token'); // 删除或注释这行
 		window.sessionStorage.clear();
 	},
 };

@@ -48,11 +48,14 @@ function createWindow() {
   })
 
   if (VITE_DEV_SERVER_URL) {
+    // npm run dev模式，.env.development分支
     win.loadURL(VITE_DEV_SERVER_URL)
     startFastAPI()
   } else {
+    // npm run build模式，.env.production分支
     // win.loadFile('dist/index.html')
     win.loadFile(path.join(RENDERER_DIST, 'index.html'))
+    startFastAPI()
   }
 }
 

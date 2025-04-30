@@ -53,7 +53,7 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
       },
     },
     build: {
-      outDir: 'dist',
+      // outDir: 'dist',  // 默认打包到此目录
       chunkSizeWarningLimit: 1500,
       rollupOptions: {
         output: {

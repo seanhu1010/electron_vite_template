@@ -94,30 +94,41 @@ export function formatTwoStageRoutes(arr: any) {
 router.beforeEach(async (to, from, next) => {
 	NProgress.configure({ showSpinner: false });
 	if (to.meta.title) NProgress.start();
+
+	// 打印当前跳转的页面信息
+	// console.log('--- 路由跳转 ---');
+	// console.log(`跳转前的路径: ${from.path}`);
+	// console.log(`跳转后的路径: ${to.path}`);
+
 	const token = Session.get('token');
 	if (to.path === '/login' && !token) {
 		next();
 		NProgress.done();
 	} else {
 		if (!token) {
+			// console.log('无token!，跳转login')
 			next(`/login?redirect=${to.path}&params=${JSON.stringify(to.query ? to.query : to.params)}`);
 			Session.clear();
 			NProgress.done();
 		} else if (token && to.path === '/login') {
+			// console.log('有token，login->home')
 			next('/home');
 			NProgress.done();
 		} else {
+			// console.log('有token, 其他页面')
 			const storesRoutesList = useRoutesList(pinia);
 			const { routesList } = storeToRefs(storesRoutesList);
 			if (routesList.value.length === 0) {
 				if (isRequestRoutes) {
 					// 后端控制路由：路由数据初始化，防止刷新时丢失
+					// console.log('后端控制路由');
 					await initBackEndControlRoutes();
 					// 解决刷新时，一直跳 404 页面问题，关联问题 No match found for location with path 'xxx'
 					// to.query 防止页面刷新时，普通路由带参数时，参数丢失。动态路由（xxx/:id/:name"）isDynamic 无需处理
 					next({ path: to.path, query: to.query });
 				} else {
 					// https://gitee.com/lyt-top/vue-next-admin/issues/I5F1HP
+					// console.log('前端控制路由');
 					await initFrontEndControlRoutes();
 					next({ path: to.path, query: to.query });
 				}

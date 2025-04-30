@@ -2,6 +2,7 @@
 export default {
 	router: {
 		home: 'home',
+		file: 'file',
 		system: 'system',
 		systemMenu: 'systemMenu',
 		systemRole: 'systemRole',

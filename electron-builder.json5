@@ -1,15 +1,30 @@
 // @see - https://www.electron.build/configuration/configuration
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
-  "appId": "YourAppID",
-  "asar": true,
-  "productName": "YourAppName",
+  "appId": "TestElectron",
+  "asar": false,  // false禁用 asar 压缩, 测试路径时使用
+  "productName": "TestElectron",
   "directories": {
     "output": "release/${version}"
   },
   "files": [
-    "dist",
-    "dist-electron"
+    // 排除所有不必要的文件和目录
+    "!**/*",
+
+    // 保留打包目录和必要的文件
+    "build/backend/**/*",  // python后端程序
+    "dist-electron",  // electron主进程代码自动打包目录
+    "dist",   // vite build前端打包输出目录，对应vite.config.ts配置文件
+    // !!! 移除这一行，让 electron-builder 自动处理 dependencies，有助于减小包体积
+    // "node_modules",  // 前端依赖和Node.js依赖
+
+    // 排除开发相关文件
+    "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+    "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+    "!**/node_modules/*.d.ts",
+    "!**/node_modules/.bin",
+    "!**/*.{map,ts,coffee,less,sass,scss,styl,pug,jade,md,markdown,txt}",
+
   ],
   "mac": {
     "target": [
@@ -39,5 +54,8 @@
       "AppImage"
     ],
     "artifactName": "${productName}-Linux-${version}.${ext}"
+  },
+  "extraMetadata": {
+    "version": "1.0.0"
   }
 }

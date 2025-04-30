@@ -2,6 +2,7 @@
 export default {
 	router: {
 		home: '首頁',
+		file: '文件夾',
 		system: '系統設置',
 		systemMenu: '選單管理',
 		systemRole: '角色管理',
